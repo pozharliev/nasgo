@@ -14,11 +14,11 @@ const (
 type Field interface {
 	Serialize() []byte
 	Size() int
-	DataType() Type
+	Type() Type
 }
 
 type IntField struct {
-	data int32
+	data int
 }
 
 type StringField struct {
@@ -34,9 +34,10 @@ func (field IntField) Serialize() []byte {
 }
 
 func (field IntField) Size() int {
-	return binary.Size(field.data)
+	return 4
 }
-func (field IntField) DataType() Type {
+
+func (field IntField) Type() Type {
 	return IntType
 }
 
@@ -53,6 +54,6 @@ func (field StringField) Size() int {
 	return field.maxLength + 4
 }
 
-func (field StringField) DataType() Type {
+func (field StringField) Type() Type {
 	return StringType
 }
