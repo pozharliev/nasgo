@@ -57,3 +57,29 @@ func (field StringField) Size() int {
 func (field StringField) Type() Type {
 	return StringType
 }
+
+func DeserializeField(data []byte, fieldDesc FieldDescriptor) Field {
+	var result Field
+
+	switch fieldDesc.DataType {
+	case IntType:
+		result = deserializeIntField(data)
+	case StringType:
+		result = deserializeStringField(data, fieldDesc)
+	}
+
+	return result
+}
+
+func deserializeIntField(data []byte) IntField {
+	decoded := int(binary.BigEndian.Uint32(data))
+
+	return IntField{data: decoded}
+}
+
+func deserializeStringField(data []byte, fieldDesc FieldDescriptor) StringField {
+	size := int(binary.BigEndian.Uint32(data[0:4]))
+	decoded := string(data[4 : size+4])
+
+	return StringField{data: decoded, maxLength: fieldDesc.Size}
+}
