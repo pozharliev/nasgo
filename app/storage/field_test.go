@@ -35,7 +35,7 @@ func TestStringFieldSerialize(t *testing.T) {
 	}
 }
 
-func TestStringField_Deserialize_ReturnsCorrectData(t *testing.T) {
+func TestStringFieldDeserializeReturnsCorrectData(t *testing.T) {
 	field, err := NewStringField("testdata123", 12)
 
 	if err != nil {
@@ -46,10 +46,15 @@ func TestStringField_Deserialize_ReturnsCorrectData(t *testing.T) {
 	tupleDesc := &TupleDescriptor{Fields: []FieldDescriptor{*fieldDesc}}
 
 	serialized := field.Serialize()
-	deserialized := Deserialize(serialized, *tupleDesc)
+	deserialized, err := Deserialize(serialized, *tupleDesc)
+
+	if err != nil {
+		t.Error(err)
+	}
 
 	if deserialized.Fields[0].(StringField).data != field.data {
 		t.Error("serialize and deserialize should have the same data")
 	}
-
 }
+
+// TODO: More tests

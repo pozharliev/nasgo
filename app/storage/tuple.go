@@ -1,7 +1,5 @@
 package storage
 
-import "log"
-
 type FieldDescriptor struct {
 	DataType Type
 	Size     int
@@ -38,16 +36,16 @@ func (tuple Tuple) Serialize() []byte {
 	return buf
 }
 
-func Deserialize(buf []byte, tupleDesc TupleDescriptor) Tuple {
+func Deserialize(buf []byte, tupleDesc TupleDescriptor) (Tuple, error) {
 	pointer, newTuple := 0, Tuple{Desc: tupleDesc}
 
-	for i, field := range tupleDesc.Fields {
+	for _, field := range tupleDesc.Fields {
 		currentFieldByte := buf[pointer : pointer+field.Size]
 
-		deserializedField, err := DeserializeField(currentFieldByte, tupleDesc.Fields[i])
+		deserializedField, err := DeserializeField(currentFieldByte, field)
 
 		if err != nil {
-			log.Fatal(err)
+			return Tuple{}, err
 		}
 
 		newTuple.Fields = append(newTuple.Fields, deserializedField)
@@ -55,5 +53,5 @@ func Deserialize(buf []byte, tupleDesc TupleDescriptor) Tuple {
 		pointer += field.Size
 	}
 
-	return newTuple
+	return newTuple, nil
 }
