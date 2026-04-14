@@ -1,5 +1,7 @@
 package storage
 
+import "log"
+
 type FieldDescriptor struct {
 	DataType Type
 	Size     int
@@ -42,7 +44,12 @@ func Deserialize(buf []byte, tupleDesc TupleDescriptor) Tuple {
 	for i, field := range tupleDesc.Fields {
 		currentFieldByte := buf[pointer : pointer+field.Size]
 
-		deserializedField := DeserializeField(currentFieldByte, tupleDesc.Fields[i])
+		deserializedField, err := DeserializeField(currentFieldByte, tupleDesc.Fields[i])
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		newTuple.Fields = append(newTuple.Fields, deserializedField)
 
 		pointer += field.Size

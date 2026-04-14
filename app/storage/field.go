@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 
 type Type int
@@ -24,6 +25,19 @@ type IntField struct {
 type StringField struct {
 	data      string
 	maxLength int
+}
+
+func NewIntField(data int) (IntField, error) {
+	return IntField{data: data}, nil
+}
+
+func NewStringField(data string, maxLength int) (StringField, error) {
+	if len(data) > maxLength {
+		return StringField{},
+			fmt.Errorf("string data length %d exceeds maxLength %d", len(data), maxLength)
+	}
+
+	return StringField{data: data, maxLength: maxLength}, nil
 }
 
 func (field IntField) Serialize() []byte {
@@ -58,28 +72,37 @@ func (field StringField) Type() Type {
 	return StringType
 }
 
-func DeserializeField(data []byte, fieldDesc FieldDescriptor) Field {
+func DeserializeField(data []byte, fieldDesc FieldDescriptor) (Field, error) {
 	var result Field
+	var err error
 
 	switch fieldDesc.DataType {
 	case IntType:
-		result = deserializeIntField(data)
+		result, err = deserializeIntField(data)
 	case StringType:
-		result = deserializeStringField(data, fieldDesc)
+		result, err = deserializeStringField(data, fieldDesc)
 	}
 
-	return result
+	return result, err
 }
 
-func deserializeIntField(data []byte) IntField {
+func deserializeIntField(data []byte) (IntField, error) {
 	decoded := int(binary.BigEndian.Uint32(data))
 
-	return IntField{data: decoded}
+	field, err := NewIntField(decoded)
+	return field, err
+
 }
 
-func deserializeStringField(data []byte, fieldDesc FieldDescriptor) StringField {
-	size := int(binary.BigEndian.Uint32(data[0:4]))
+func deserializeStringField(data []byte, fieldDesc FieldDescriptor) (StringField, error) {
+	size := binary.BigEndian.Uint32(data[0:4])
 	decoded := string(data[4 : size+4])
 
-	return StringField{data: decoded, maxLength: fieldDesc.Size}
+	field, err := NewStringField(decoded, fieldDesc.Size)
+
+	if err != nil {
+		return StringField{}, err
+	}
+
+	return field, nil
 }
